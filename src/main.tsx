@@ -9,6 +9,7 @@ import Candlesticks from "./ohlc/indicators/Candlesticks";
 import MovingAverage from "./ohlc/indicators/MovingAverage";
 import mockdata from "./mockdata";
 import BollingerBands from "./ohlc/indicators/BollingerBands";
+import Grid from "./ohlc/indicators/Grid";
 
 function App() {
   const { upsertSymbolData } = useBunja(ohlcBunja);
@@ -17,6 +18,7 @@ function App() {
     <Ohlc style={{ height: "500px", border: "1px solid black" }}>
       <Col symbolKey="mock" interval={60000}>
         <Row>
+          <Grid color="rgba(0,0,0,0.1)" />
           <BollingerBands
             length={20}
             multiplier={2}
