@@ -1,8 +1,7 @@
-import React from "react";
+import React, { useId } from "react";
 import { useAtomValue, useSetAtom } from "jotai";
 import { useBunja } from "bunja/react";
 
-import useId from "../misc/useId";
 import { Layers, Layer } from "../misc/layer";
 import { useSetCanvasInfo } from "../misc/canvas";
 import { ValueAxisContext } from "./value-axis/state";
@@ -27,12 +26,12 @@ function Row({ formatValue = String, children, ...props }: RowProps) {
           justifyContent: "stretch",
         }}
       >
-        <RowLayers>
-          <ValueAxisContext.Provider value={formatValue}>
+        <ValueAxisContext.Provider value={formatValue}>
+          <RowLayers>
             <ValueAxisContent />
-          </ValueAxisContext.Provider>
-          {children as React.ReactElement}
-        </RowLayers>
+            {children as React.ReactElement}
+          </RowLayers>
+        </ValueAxisContext.Provider>
         <ValueAxis />
       </div>
     </RowContext.Provider>
