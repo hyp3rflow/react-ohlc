@@ -36,6 +36,7 @@ export function ValueAxisContent() {
     ctx.font = valueAxisFont;
     for (const { value, text } of labelValueAndTexts) {
       const y = toScreenY(value);
+      ctx.textBaseline = 'middle';
       ctx.fillText(text, 0, y);
     }
   });
