@@ -49,7 +49,7 @@ export default function BollingerBands({
         sum2 += data.close * data.close;
         ++cnt;
       }
-      if (cnt < 1) continue;
+      if (cnt < length) continue;
       const avg = sum / cnt;
       const timestamp = i * interval;
       const x = toScreenX(timestamp);
