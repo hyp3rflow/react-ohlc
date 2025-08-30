@@ -43,7 +43,7 @@ export default function Candlesticks({
       const h1 = Math.round(Math.abs(lowY - highY));
       const y2 = Math.round(Math.min(openY, closeY));
       const h2 = Math.max(1, Math.round(Math.abs(closeY - openY)));
-      const gap = dataWidth / 4;
+      const gap = dataWidth / 8;
       const halfWidth = (dataWidth - gap) / 2;
       ctx.fillStyle = data.open < data.close ? risingColor : fallingColor;
       ctx.beginPath();

@@ -1,6 +1,6 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { flushSync } from "react-dom";
-import { useSetAtom } from "jotai";
+import { useAtomValue, useSetAtom } from "jotai";
 import { useBunja } from "bunja/react";
 import useResizeObserver from "@react-hook/resize-observer";
 
@@ -27,11 +27,35 @@ export default React.memo(Col);
 
 function ColInternal(props: React.HTMLAttributes<HTMLDivElement>) {
   const colDivRef = React.useRef<HTMLDivElement>(null);
-  const { colWidthAtom } = useBunja(colBunja);
+  const { interval, colWidthAtom, offsetAtom, zoomFactorAtom } = useBunja(colBunja);
   const setColWidth = useSetAtom(colWidthAtom);
+  const setOffset = useSetAtom(offsetAtom);
+  const setZoomFactor = useSetAtom(zoomFactorAtom);
+  const zoomFactor = useAtomValue(zoomFactorAtom);
   useResizeObserver(colDivRef, ({ contentRect: { width } }) => {
     flushSync(() => setColWidth(width));
   });
+  useEffect(() => {
+    const el = colDivRef.current;
+    if (!el) return;
+    el.addEventListener('wheel', handleWheel, { passive: false });
+    return () => el.removeEventListener('wheel', handleWheel);
+    function handleWheel(e: WheelEvent) {
+      if (!Math.abs(e.deltaX) && !Math.abs(e.deltaY)) return;
+      e.preventDefault();
+      if (e.ctrlKey) {
+        setZoomFactor(prev => {
+          const newZoom = prev * (1 - e.deltaY * 0.002);
+          return Math.max(1, Math.min(14, newZoom));
+        });
+      } else {
+        setOffset(prev => {
+          const scaleFactor = interval * zoomFactor / 70;
+          return prev + e.deltaX * scaleFactor;
+        });
+      }
+    };
+  }, [setOffset, setZoomFactor, interval, zoomFactor]);
   return (
     <div
       {...props}
