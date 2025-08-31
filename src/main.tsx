@@ -11,6 +11,7 @@ import mockdata from "./mockdata";
 import BollingerBands from "./ohlc/indicators/BollingerBands";
 import Volume from "./ohlc/indicators/Volume";
 import Grid from "./ohlc/indicators/Grid";
+import RelativeStrengthIndex from "./ohlc/indicators/RelativeStrengthIndex";
 
 function App() {
   const { upsertSymbolData } = useBunja(ohlcBunja);
@@ -34,6 +35,9 @@ function App() {
         <Row style={{ borderTop: "1px solid black", maxHeight: '200px' }}>
           <Grid color="rgba(0,0,0,0.1)" />
           <Volume risingColor="green" fallingColor="red"/>
+        </Row>
+        <Row style={{ borderTop: "1px solid black", maxHeight: '100px' }}>
+          <RelativeStrengthIndex length={14} lineColor="blue" overboughtColor="rgba(0,0,0,0.3)" oversoldColor="rgba(0,0,0,0.3)" />
         </Row>
       </Col>
     </Ohlc>
