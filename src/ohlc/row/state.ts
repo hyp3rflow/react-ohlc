@@ -1,12 +1,11 @@
 import React from "react";
-import { atom } from "jotai";
-import { bunja, Bunja } from "bunja";
+import { Atom, atom } from "jotai";
+import { bunja } from "bunja";
 import { useBunja } from 'bunja/react';
 
 import { lerp } from "../misc/interpolation";
 import { createCanvasFns, type CanvasInfo } from "../misc/canvas";
 import { devicePixelRatioBunja } from "../misc/devicePixelRatio";
-import type { Data } from "../market-data";
 import { OhlcScope } from "../Ohlc";
 import { colBunja } from "../col/state";
 import { createScopeFromContext } from "bunja/react";
@@ -27,21 +26,15 @@ export function useValueAxisCanvas(fn: DrawFn) {
   React.useLayoutEffect(() => updateValueAxisDrawFn(drawOrder, fn));
 }
 
-export const RowContext = React.createContext(0);
+export const RowContext = React.createContext("");
 export const RowScope = createScopeFromContext(RowContext);
 
 export const rowBunja = bunja(
   () => {
     const store = bunja.use(OhlcScope);
     const { devicePixelRatioAtom } = bunja.use(devicePixelRatioBunja);
-    const {
-      interval,
-      chartDataAtom,
-      colWidthAtom,
-      minScreenTimestampAtom,
-      maxScreenTimestampAtom,
-    } = bunja.use(colBunja);
-    const RowContext = bunja.use(RowScope);
+    const { chartDataAtom, colWidthAtom } = bunja.use(colBunja);
+    bunja.use(RowScope);
     const readyToDrawAtom = atom((get) => {
       const chartData = get(chartDataAtom);
       const colWidth = get(colWidthAtom);
@@ -87,6 +80,7 @@ export const rowBunja = bunja(
     /**
      * 세로축의 단위는 픽셀인데 여기에 얼마를 곱할지
      */
+    const zoomFactorAtom = atom(0.9);
     const zoomAtom = atom((get) => {
       const auto = get(autoAtom);
       const screenCanvasInfo = get(screenCanvasInfoAtom);
@@ -96,44 +90,14 @@ export const rowBunja = bunja(
       if (!auto || !screenCanvasInfo) return zoomSource;
       const { height: canvasHeight } = screenCanvasInfo;
       const dataHeight = maxScreenValue - minScreenValue;
-      return (canvasHeight * 0.6) / dataHeight;
+      return (canvasHeight * get(zoomFactorAtom)) / dataHeight;
     });
     const zoomSourceAtom = atom(1);
-    const minScreenValueAtom = atom((get) => {
-      const reduceInnerData = get(reduceInnerDataAtom);
-      return reduceInnerData(
-        (prev, { low }) => (prev < low ? prev : low),
-        Infinity
-      );
-    });
-    const maxScreenValueAtom = atom((get) => {
-      const reduceInnerData = get(reduceInnerDataAtom);
-      return reduceInnerData(
-        (prev, { high }) => (prev > high ? prev : high),
-        -Infinity
-      );
-    });
-    const reduceInnerDataAtom = atom((get) => {
-      const chartData = get(chartDataAtom);
-      const minScreenTimestamp = get(minScreenTimestampAtom);
-      const maxScreenTimestamp = get(maxScreenTimestampAtom);
-      const start = Math.round(minScreenTimestamp / interval);
-      const end = Math.round(maxScreenTimestamp / interval);
-      return function reduceInnerData<T>(
-        fn: (prev: T, curr: Data) => T,
-        initial: T
-      ): T {
-        let acc = initial;
-        if (!chartData) return acc;
-        for (let i = start; i < end; ++i) {
-          const timestamp = i * interval;
-          const data = chartData.raw[timestamp];
-          if (!data) continue;
-          acc = fn(acc, data);
-        }
-        return acc;
-      };
-    });
+    const anchorAtom = atom<'min' | 'max' | undefined>(undefined);
+    const minScreenValuesAtom = atom<Atom<number>[]>([]);
+    const maxScreenValuesAtom = atom<Atom<number>[]>([]);
+    const minScreenValueAtom = atom((get) => Math.min(Infinity, ...get(minScreenValuesAtom).map(get)));
+    const maxScreenValueAtom = atom((get) => Math.max(-Infinity, ...get(maxScreenValuesAtom).map(get)));
     bunja.effect(() => {
       return () => {
         disposeScreenCanvasFns();
@@ -146,7 +110,13 @@ export const rowBunja = bunja(
       focusAtom,
       focusSourceAtom,
       zoomAtom,
+      zoomFactorAtom,
       zoomSourceAtom,
+      anchorAtom,
+      minScreenValuesAtom,
+      maxScreenValuesAtom,
+      minScreenValueAtom,
+      maxScreenValueAtom,
       screenCanvasInfoAtom,
       valueAxisCanvasInfoAtom,
       clearScreenDrawFns,

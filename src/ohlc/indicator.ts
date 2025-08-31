@@ -15,12 +15,15 @@ export const indicatorBunja = bunja(
       toTimestampAtom,
       minScreenTimestampAtom,
       maxScreenTimestampAtom,
-    } = bunja.use(colBunja)
+    } = bunja.use(colBunja);
     const {
       screenCanvasInfoAtom: rowScreenCanvasInfoAtom,
       valueAxisCanvasInfoAtom: rowValueAxisCanvasInfoAtom,
       focusAtom: rowFocusAtom,
       zoomAtom: rowZoomAtom,
+      minScreenValueAtom,
+      maxScreenValueAtom,
+      anchorAtom,
     } = bunja.use(rowBunja)
     const chartDataAtom = atom((get) => {
       const chartData = get(colChartDataAtom);
@@ -45,6 +48,19 @@ export const indicatorBunja = bunja(
       const { height } = get(screenCanvasInfoAtom);
       const focus = get(rowFocusAtom);
       const zoom = get(rowZoomAtom);
+      const anchor = get(anchorAtom);
+      if (anchor == 'min') {
+        const minScreenValue = get(minScreenValueAtom);
+        return function toScreenMinY(value: number): number {
+          return height - (value - minScreenValue) * zoom;
+        }
+      }
+      if (anchor == 'max') {
+        const maxScreenValue = get(maxScreenValueAtom);
+        return function toScreenMaxY(value: number): number {
+          return (maxScreenValue - value) * zoom;
+        }
+      }
       return function toScreenY(value: number): number {
         const center = height / 2;
         return (value - focus) * -zoom + center;

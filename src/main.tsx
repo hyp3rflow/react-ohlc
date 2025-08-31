@@ -9,13 +9,14 @@ import Candlesticks from "./ohlc/indicators/Candlesticks";
 import MovingAverage from "./ohlc/indicators/MovingAverage";
 import mockdata from "./mockdata";
 import BollingerBands from "./ohlc/indicators/BollingerBands";
+import Volume from "./ohlc/indicators/Volume";
 import Grid from "./ohlc/indicators/Grid";
 
 function App() {
   const { upsertSymbolData } = useBunja(ohlcBunja);
   React.useEffect(() => upsertSymbolData("mock", 60000, mockdata), []);
   return (
-    <Ohlc style={{ height: "500px", border: "1px solid black" }}>
+    <Ohlc style={{ height: "600px", border: "1px solid black" }}>
       <Col symbolKey="mock" interval={60000}>
         <Row>
           <Grid color="rgba(0,0,0,0.1)" />
@@ -29,6 +30,10 @@ function App() {
           />
           <Candlesticks risingColor="green" fallingColor="red" />
           <MovingAverage length={9} color="blue" />
+        </Row>
+        <Row style={{ borderTop: "1px solid black", maxHeight: '200px' }}>
+          <Grid color="rgba(0,0,0,0.1)" />
+          <Volume risingColor="green" fallingColor="red"/>
         </Row>
       </Col>
     </Ohlc>
